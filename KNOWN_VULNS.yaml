@@ -1,0 +1,198 @@
+# KNOWN_VULNS — ground-truth vulnerability catalog
+# Purpose: answer key for benchmarking Scantonomous scan findings against this app.
+# Diff scanner output vs. this file: a hit on a `vulnerable_source` path == true positive;
+# a hit on a `secure_source` path == false positive.
+#
+# Schema per entry (benchmark variant — carries case-count fields):
+#   id                    stable slug for this vuln class
+#   category              vulnerability module
+#   cwe                   primary CWE id(s), taken from the shipped VulnerabilityType enum
+#   owasp                 OWASP Top 10 (2021) category
+#   true_positive_count   number of vulnerable "level" endpoints in the module
+#   false_positive_count  safe/hardened level count (0 = none isolated / unknown)
+#   vulnerable_source     module source dir
+#   ground_truth_file     shipped metadata source (enum + annotations)
+#   notes                 context / caveats
+
+app: VulnerableApp
+full_name: SasanLabs VulnerableApp
+upstream: https://github.com/SasanLabs/VulnerableApp
+fork: https://github.com/tomj12k/VulnerableApp
+language: Java
+scan_surface: [SAST-java, DAST-web]
+catalog_notes: >
+  VulnerableApp ships its ground truth as code metadata, not a CSV. Each
+  vulnerability module lives under src/main/java/org/sasanlabs/service/vulnerability/<module>/
+  and exposes a set of graduated-difficulty "level" endpoints annotated with
+  @VulnerableAppRequestMapping; most also carry @AttackVector annotations naming
+  the exploited VulnerabilityType(s). CWE ids are taken from the shipped enum
+  src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java, where
+  each VulnerabilityType is constructed with its cweID (e.g. BLIND_SQL_INJECTION(89,19)).
+  true_positive_count = number of @VulnerableAppRequestMapping endpoints in the
+  module (counted with grep). VulnerableApp does not segregate its safe/hardened
+  levels into a separate answer-key list, so false_positive_count is set to 0
+  (not independently verifiable from shipped metadata) except where noted.
+
+vulns:
+  - id: vulnapp-sqli
+    category: sqlInjection
+    cwe: [CWE-89]
+    owasp: A03:2021-Injection
+    true_positive_count: 19
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/sqlInjection/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: BLIND/ERROR_BASED/UNION_BASED_SQL_INJECTION, all CWE-89.
+
+  - id: vulnapp-xss
+    category: xss
+    cwe: [CWE-79]
+    owasp: A03:2021-Injection
+    true_positive_count: 19
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/xss/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: REFLECTED_XSS, PERSISTENT_XSS, DOM_BASED_XSS, all CWE-79.
+
+  - id: vulnapp-command-injection
+    category: commandInjection
+    cwe: [CWE-77]
+    owasp: A03:2021-Injection
+    true_positive_count: 6
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/commandInjection/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: COMMAND_INJECTION(77).
+
+  - id: vulnapp-path-traversal
+    category: pathTraversal
+    cwe: [CWE-22]
+    owasp: A01:2021-Broken Access Control
+    true_positive_count: 12
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/pathTraversal/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: PATH_TRAVERSAL(22).
+
+  - id: vulnapp-ldap-injection
+    category: ldapInjection
+    cwe: [CWE-90]
+    owasp: A03:2021-Injection
+    true_positive_count: 6
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/ldapInjection/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: LDAP_INJECTION(90).
+
+  - id: vulnapp-xxe
+    category: xxe
+    cwe: [CWE-611]
+    owasp: A05:2021-Security Misconfiguration
+    true_positive_count: 5
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/xxe/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: XXE(611).
+
+  - id: vulnapp-ssrf
+    category: ssrf
+    cwe: [CWE-918]
+    owasp: A10:2021-Server-Side Request Forgery
+    true_positive_count: 5
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/ssrf/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: SIMPLE_SSRF and BLIND_SSRF, both CWE-918.
+
+  - id: vulnapp-open-redirect
+    category: openRedirect
+    cwe: [CWE-601]
+    owasp: A01:2021-Broken Access Control
+    true_positive_count: 13
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/openRedirect/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: OPEN_REDIRECT_3XX_STATUS_CODE(601).
+
+  - id: vulnapp-idor
+    category: idor
+    cwe: [CWE-639]
+    owasp: A01:2021-Broken Access Control
+    true_positive_count: 5
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/idor/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: INSECURE_DIRECT_OBJECT_REFERENCE(639).
+
+  - id: vulnapp-jwt
+    category: jwt
+    cwe: [CWE-347, CWE-522, CWE-1188, CWE-113]
+    owasp: A07:2021-Identification and Authentication Failures
+    true_positive_count: 14
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/jwt/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: SERVER_SIDE_VULNERABLE_JWT(347), CLIENT_SIDE_VULNERABLE_JWT(522), INSECURE_CONFIGURATION_JWT(1188); also exposes HEADER_INJECTION(113).
+
+  - id: vulnapp-file-upload
+    category: fileupload
+    cwe: [CWE-434]
+    owasp: A05:2021-Security Misconfiguration
+    true_positive_count: 10
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/fileupload/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: UNRESTRICTED_FILE_UPLOAD(434).
+
+  - id: vulnapp-clickjacking
+    category: clickjacking
+    cwe: [CWE-1021]
+    owasp: A05:2021-Security Misconfiguration
+    true_positive_count: 7
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/clickjacking/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: CLICKJACKING(1021).
+
+  - id: vulnapp-cache-poisoning
+    category: cachePoisoning
+    cwe: [CWE-349, CWE-79]
+    owasp: A05:2021-Security Misconfiguration
+    true_positive_count: 5
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/cachePoisoning/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: WEB_CACHE_POISONING(349); some vectors chain REFLECTED_XSS(79).
+
+  - id: vulnapp-crypto
+    category: cryptographicFailures
+    cwe: [CWE-327, CWE-326, CWE-330]
+    owasp: A02:2021-Cryptographic Failures
+    true_positive_count: 11
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/cryptographicFailures/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: WEAK_CRYPTOGRAPHIC_HASH(327), INSECURE_CRYPTOGRAPHIC_STORAGE(326), USE_OF_BROKEN_CRYPTOGRAPHIC_ALGORITHM(330).
+
+  - id: vulnapp-authentication
+    category: authentication
+    cwe: [CWE-256, CWE-916, CWE-204]
+    owasp: A07:2021-Identification and Authentication Failures
+    true_positive_count: 10
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/authentication/]
+    ground_truth_file: src/main/java/org/sasanlabs/vulnerability/types/VulnerabilityType.java
+    notes: PLAINTEXT_PASSWORD_STORAGE(256), WEAK_PASSWORD_HASHING(916), USERNAME_ENUMERATION(204); also chains ERROR_BASED_SQL_INJECTION(89).
+
+  - id: vulnapp-rfi
+    category: rfi
+    cwe: [CWE-98]
+    owasp: A03:2021-Injection
+    true_positive_count: 2
+    false_positive_count: 0
+    vulnerable_source: [src/main/java/org/sasanlabs/service/vulnerability/rfi/]
+    ground_truth_file: null
+    notes: >
+      Remote file inclusion module (2 @VulnerableAppRequestMapping endpoints).
+      Carries no @AttackVector/VulnerabilityType metadata, so CWE-98 is assigned
+      by module semantics rather than the shipped enum.
